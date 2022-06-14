@@ -85,7 +85,7 @@ These lookup plugins depend on the following software packages:
 
 | Name            | Min. version | Comments |
 |-----------------|--------------|----------|
-| Ansible         | 2.7          | Doesn't really need an introduction here |
+| Ansible         | 2.8 (ideally 2.9+) | Collections are a tech preview in 2.8 but fully supported in 2.9+ |
 | HashiCorp Vault | 1.1.3        | Only KV storage engine version 2 is supported |
 | GnuPG           | 2.1.17       | To generate GPG Keys |
 | Libgcrypt       | 1.8.1        | Required by GnuPG |
@@ -116,15 +116,15 @@ Additionally, the following python packages are required. These should be instal
 #### Install package
 
 ```bash
-pip install ahvl
+ansible-galaxy collection install git+https://github.com/netson/ahvl
 ```
 
-Package will most likely be installed in ```/usr/local/lib/pythonX.X/dist-packages/ahvl``` on ubuntu systems
+To customize where the collection is installed or to choose a specific version, please refer to: https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#installing-collections-with-ansible-galaxy
 
 #### Upgrade package
 
 ```bash
-pip install --upgrade ahvl
+ansible-galaxy collection install git+https://github.com/netson/ahvl --upgrade
 ```
 
 
@@ -194,7 +194,7 @@ PASSLIB_MAX_PASSWORD_SIZE=16384 # to prevent error when using the hash function 
 
 ```yaml
 ---
-# playbook to demonstrate ahvl_password
+# playbook to demonstrate netson.ahvl.password
 
 - hosts: localhost
   gather_facts: no
@@ -217,21 +217,21 @@ PASSLIB_MAX_PASSWORD_SIZE=16384 # to prevent error when using the hash function 
   tasks:
 
   # the path in vault which will be searched is [hosts/localhost/mariadb] on the default mountpoint
-  - name: 'ahvl_password : get password for MariaDB account with username myuser and show all outputs'
+  - name: 'netson.ahvl.password : get password for MariaDB account with username myuser and show all outputs'
     debug:
-      msg: "{{ lookup('ahvl_password', find='mariadb', in='myuser', out=item) }}"
+      msg: "{{ lookup('netson.ahvl.password', find='mariadb', in='myuser', out=item) }}"
     loop: "{{ output_filters }}"
 
-  - name: 'ahvl_password : get password (length=8, type=phrase - will result in 8 words) for MariaDB account with username anotheruser and output the mysql41 hash'
+  - name: 'netson.ahvl.password : get password (length=8, type=phrase - will result in 8 words) for MariaDB account with username anotheruser and output the mysql41 hash'
     debug:
-      msg: "{{ lookup('ahvl_password', find='mariadb', in='anotheruser', out='mysql41', pwd_length=8, pwd_type='phrase') }}"
+      msg: "{{ lookup('netson.ahvl.password', find='mariadb', in='anotheruser', out='mysql41', pwd_length=8, pwd_type='phrase') }}"
 ```
 
 Additionally, passwords can be set with a value from your playbook. This can be useful to store secrets which you receive from an API or similar. For example, when creating IAM users on Amazon AWS, you could use the following example to store the returned access key in Vault:
 
 ```
 ---
-# playbook to demonstrate ahvl_set_password
+# playbook to demonstrate netson.ahvl.set_password
 
 - hosts: localhost
   gather_facts: no
@@ -239,9 +239,9 @@ Additionally, passwords can be set with a value from your playbook. This can be 
   tasks:
 
   # the path in vault which will be set is [hosts/localhost/awstestusr] on the default mountpoint
-  - name: 'ahvl_set_password : set password for aws user, created via ansible'
+  - name: 'netson.ahvl.set_password : set password for aws user, created via ansible'
     debug:
-      msg: "{{ lookup('ahvl_set_password', find='awstestusr', in='myawsuser', pwd='mypasswd') }}"
+      msg: "{{ lookup('netson.ahvl.set_password', find='awstestusr', in='myawsuser', pwd='mypasswd') }}"
 ```
 
 
@@ -249,7 +249,7 @@ Additionally, passwords can be set with a value from your playbook. This can be 
 
 ```yaml
 ---
-# playbook to demonstrate ahvl_sshkey
+# playbook to demonstrate netson.ahvl.sshkey
 
 - hosts: localhost
   gather_facts: no
@@ -304,14 +304,14 @@ Additionally, passwords can be set with a value from your playbook. This can be 
 
   tasks:
 
-  - name: 'ahvl_sshkey : fetch/generate SSH key of type Ed25519 and output all information pieces'
+  - name: 'netson.ahvl.sshkey : fetch/generate SSH key of type Ed25519 and output all information pieces'
     debug:
-      msg: "{{ lookup('ahvl_sshkey', find='myusername', in=item, out='plaintext') }}"
+      msg: "{{ lookup('netson.ahvl.sshkey', find='myusername', in=item, out='plaintext') }}"
     loop: "{{ sshkey_ed25519_in }}"
 
-  - name: 'ahvl_sshkey : rsa'
+  - name: 'netson.ahvl.sshkey : rsa'
     debug:
-      msg: "{{ lookup('ahvl_sshkey', find='anotherusername', sshkey_type='rsa', in=item, out='plaintext') }}"
+      msg: "{{ lookup('netson.ahvl.sshkey', find='anotherusername', sshkey_type='rsa', in=item, out='plaintext') }}"
     loop: "{{ sshkey_rsa_in }}"
 ```
 
@@ -319,7 +319,7 @@ Additionally, passwords can be set with a value from your playbook. This can be 
 
 ```yaml
 ---
-# playbook to demonstrate ahvl_sshhostkey
+# playbook to demonstrate netson.ahvl.sshhostkey
 
 - hosts: localhost
   gather_facts: no
@@ -344,21 +344,21 @@ Additionally, passwords can be set with a value from your playbook. This can be 
   tasks:
 
   # search path used for vault will be [hosts/localhost/sshhostkeys/rsa]
-  - name: 'ahvl_sshhostkey : lookup RSA hostkey and output all pieces'
+  - name: 'netson.ahvl.sshhostkey : lookup RSA hostkey and output all pieces'
     debug:
-      msg: "{{ lookup('ahvl_sshhostkey', find='rsa', in=item, out='plaintext') }}"
+      msg: "{{ lookup('netson.ahvl.sshhostkey', find='rsa', in=item, out='plaintext') }}"
     loop: "{{ sshhostkey_ins }}"
 
   # search path used for vault will be [hosts/localhost/sshhostkeys/ed25519]
-  - name: 'ahvl_sshhostkey : lookup Ed25519 hostkey and output all pieces'
+  - name: 'netson.ahvl.sshhostkey : lookup Ed25519 hostkey and output all pieces'
     debug:
-      msg: "{{ lookup('ahvl_sshhostkey', find='ed25519', in=item, out='plaintext') }}"
+      msg: "{{ lookup('netson.ahvl.sshhostkey', find='ed25519', in=item, out='plaintext') }}"
     loop: "{{ sshhostkey_ins }}"
 
   # search path used for vault will be [hosts/myhost2.local/sshhostkeys/rsa]
-  - name: 'ahvl_sshhostkey : lookup RSA for another host and output all pieces'
+  - name: 'netson.ahvl.sshhostkey : lookup RSA for another host and output all pieces'
     debug:
-      msg: "{{ lookup('ahvl_sshhostkey', find='rsa', in=item, sshhostkey_type='rsa', out='plaintext', hostname='myhost2.local') }}"
+      msg: "{{ lookup('netson.ahvl.sshhostkey', find='rsa', in=item, sshhostkey_type='rsa', out='plaintext', hostname='myhost2.local') }}"
     loop: "{{ sshhostkey_ins }}"
 ```
 
@@ -366,7 +366,7 @@ Additionally, passwords can be set with a value from your playbook. This can be 
 
 ```yaml
 ---
-# playbook to demonstrate ahvl_gpgkey
+# playbook to demonstrate netson.ahvl.gpgkey
 
 - hosts: localhost
   gather_facts: no
@@ -454,27 +454,27 @@ Additionally, passwords can be set with a value from your playbook. This can be 
   tasks:
 
   # search path used for vault will be [gpgkeys/name_ed25519_localhost_myemail]
-  - name: 'ahvl_gpgkey : fetch/generate regular ed25519 key and output all pieces'
+  - name: 'netson.ahvl.gpgkey : fetch/generate regular ed25519 key and output all pieces'
     debug:
-      msg: "{{ lookup('ahvl_gpgkey', gpgkey_fullname='name_ed25519', gpgkey_email='myemail', in=item, out='plaintext') }}"
+      msg: "{{ lookup('netson.ahvl.gpgkey', gpgkey_fullname='name_ed25519', gpgkey_email='myemail', in=item, out='plaintext') }}"
     loop: "{{ gpgkey_regular_ins }}"
 
   # search path used for vault will be [gpgkeys/name_rsa_localhost_myemail]
-  - name: 'ahvl_gpgkey : fetch generate regular RSA key and output all pieces'
+  - name: 'netson.ahvl.gpgkey : fetch generate regular RSA key and output all pieces'
     debug:
-      msg: "{{ lookup('ahvl_gpgkey', gpgkey_type='rsa', gpgkey_fullname='name_rsa', gpgkey_email='myemail', in=item, out='plaintext') }}"
+      msg: "{{ lookup('netson.ahvl.gpgkey', gpgkey_type='rsa', gpgkey_fullname='name_rsa', gpgkey_email='myemail', in=item, out='plaintext') }}"
     loop: "{{ gpgkey_regular_ins }}"
 
   # search path used for vault will be [gpgkeys/bckp_ed25519_localhost_myemail]
-  - name: 'ahvl_gpgkey : fetch/generate backup ed25519 key and output all pieces'
+  - name: 'netson.ahvl.gpgkey : fetch/generate backup ed25519 key and output all pieces'
     debug:
-      msg: "{{ lookup('ahvl_gpgkey', gpgkey_keyset='backup', gpgkey_fullname='bckp_ed25519', gpgkey_email='myemail', gpgkey_comment=inventory_hostname, in=item, out='plaintext') }}"
+      msg: "{{ lookup('netson.ahvl.gpgkey', gpgkey_keyset='backup', gpgkey_fullname='bckp_ed25519', gpgkey_email='myemail', gpgkey_comment=inventory_hostname, in=item, out='plaintext') }}"
     loop: "{{ gpgkey_backup_ins }}"
 
   # search path used for vault will be [gpgkeys/bckp_rsa_localhost_myemail]
-  - name: 'ahvl_gpgkey : fetch/generate backup RSA key and output all pieces'
+  - name: 'netson.ahvl.gpgkey : fetch/generate backup RSA key and output all pieces'
     debug:
-      msg: "{{ lookup('ahvl_gpgkey', gpgkey_keyset='backup', gpgkey_type='rsa', gpgkey_fullname='bckp_rsa', gpgkey_email='myemail', gpgkey_comment=inventory_hostname, in=item, out='plaintext') }}"
+      msg: "{{ lookup('netson.ahvl.gpgkey', gpgkey_keyset='backup', gpgkey_type='rsa', gpgkey_fullname='bckp_rsa', gpgkey_email='myemail', gpgkey_comment=inventory_hostname, in=item, out='plaintext') }}"
     loop: "{{ gpgkey_backup_ins }}"
 ```
 
@@ -482,7 +482,7 @@ Additionally, passwords can be set with a value from your playbook. This can be 
 
 ```yaml
 ---
-# playbook to demonstrate ahvl_credential
+# playbook to demonstrate netson.ahvl.credential
 
 - hosts: localhost
   gather_facts: no
@@ -505,9 +505,9 @@ Additionally, passwords can be set with a value from your playbook. This can be 
   tasks:
 
   # search path used for vault will be [credentials/transip]
-  - name: 'ahvl_password : find credential; will fail if it does not exist'
+  - name: 'netson.ahvl.password : find credential; will fail if it does not exist'
     debug:
-      msg: "{{ lookup('ahvl_credential', find='transip', in='apikeyxyz', out=item) }}"
+      msg: "{{ lookup('netson.ahvl.credential', find='transip', in='apikeyxyz', out=item) }}"
     loop: "{{ credential_outs }}"
 ```
 
@@ -520,7 +520,7 @@ To give you maximum flexibility in configuring the behaviour of these lookup plu
 
 | Priority | Method                | Example                                                          | Comments                                   |
 |----------|-----------------------|------------------------------------------------------------------|--------------------------------------------|
-| 1        | Lookup arguments      | `lookup('ahvl_password', find='mysql' in='myuser', out='mysql41')` | |
+| 1        | Lookup arguments      | `lookup('netson.ahvl.password', find='mysql' in='myuser', out='mysql41')` | |
 | 2        | Environment variables | `AHVL_CONNECTION_AHVL_TOKEN=http://localhost:8200` | |
 | 3        | Prefixed variables    | `ahvl_connection_ahvl_url:'http://localhost:8200'` | |
 | 4        | Nested variables      | `ahvl_connection:`<br>&nbsp;&nbsp;`ahvl_url: 'http://localhost:8200'` | |
@@ -721,21 +721,16 @@ No additional options available.
 ## Update ahvl package instructions
 
 * create a working directory `mkdir /opt/ahvl && cd /opt/ahvl`
-* make sure twine is installed `pip install twine`
 * make sure your github SSH key is available
 * login to github `ssh -T git@github.com`
 * clone repository `git clone git://github.com/netson/ahvl`
-* set remote origin `git remote set-url origin git@github.com:netson/ahvl.git`
+* checkout new branch `git checkout -b my-branch-name`
 * make changes as needed
-* remove any dist folder that may exist `rm -rf ./dist && rm MANIFEST`
-* determine next PyPi package version number, look at `https://github.com/netson/ahvl/releases`
-* change the `version` and `download_url` in `setup.py`
+* determine next version number, look at `https://github.com/netson/ahvl/releases`
+* change the `version` in `galaxy.yml`
 * commit changes to git `git add . && git commit -m "commit message"`
-* push to master `git push origin master`
-* create a new release on github with the same version number as in `download_url`
-* create PyPi source distribution `python setup.py sdist`
-* test package upload using twine `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
-* verify test results on `https://test.pypi.org/manage/projects/`
-* upload package to PyPi using twine `twine upload dist/*`
-* enter your `username` and `password`
+* push to origin `git push -u origin my-branch-name`
+* create a new release on github with the same version number as in `galaxy.yml`
+* build the collection `ansible-galaxy collection build .`
+* publish the package on ansible galaxy `ansible-galaxy collection publish`
 * DONE! :-)
