@@ -97,8 +97,8 @@ class AhvlHelper:
             return True
 
         # set regexes to validate input
-        regex1 = '^\d{4}-\d\d-\d\d$'    # ISO date format YYYY-DD-MM
-        regex2 = '^\d+[d|w|m|y]$'       # <int>[d|w|m|y]
+        regex1 = r"^\d{4}-\d\d-\d\d$"    # ISO date format YYYY-DD-MM
+        regex2 = r"^\d+[d|w|m|y]$"       # <int>[d|w|m|y]
         match1 = re.compile(regex1).match
         match2 = re.compile(regex2).match
 
